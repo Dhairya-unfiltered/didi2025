@@ -207,6 +207,12 @@
         .image-container {
             margin-bottom: 16px;
             display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-container.visible {
+            opacity: 1;
         }
 
         .popup-image {
@@ -214,13 +220,14 @@
             max-height: 150px;
             object-fit: contain;
             border-radius: 8px;
-            display: none;
+            display: block;
         }
 
         .popup-message {
             margin-bottom: 20px;
             font-size: 0.95rem;
             line-height: 1.5;
+            white-space: pre-line;
         }
 
         .popup-close {
@@ -346,7 +353,7 @@
             "2 * 10 * 1000 = ?", "166 + 200 = ?", "3 X 1000 = ?"
         ];
 
-        const messages = [
+             const messages = [
     "1000\n\n- That's how much I love you, multiplied by infinity! ❤️✨", 
 
     "6\n\n- Dipak Flat—home that felt perfect! ❤️🏡 because we all lived under one roof", 
@@ -384,7 +391,6 @@
     "3000\n\n- That's how everyone loves you. (But I love you 3000 * infinity 😆)! ❤️✨"
 ];
 
-
         const questionImages = [
             "q1.jpeg", "q2.jpeg", "q3.jpeg", "q4.jpeg", "q5.jpeg",
             "q6.jpeg", "q7.jpeg", "q8.jpeg", "q9.jpeg", "q10.jpeg",
@@ -408,25 +414,37 @@
         const START_TIME = 0;
         
         function showPopup(message, showImage = false, imageUrl = '') {
+            // Reset image container state
+            imageContainer.style.display = 'none';
+            imageContainer.classList.remove('visible');
+            popupImage.src = '';
+            
             popupMessage.textContent = message;
             
             if (showImage && imageUrl) {
-                imageContainer.style.display = 'block';
-                popupImage.style.display = 'block';
+                // Hide the popup content briefly while we load the new image
+                popup.classList.remove('active');
+                
+                // Load the new image
+                popupImage.onload = function() {
+                    imageContainer.style.display = 'block';
+                    popup.classList.add('active');
+                    setTimeout(() => {
+                        imageContainer.classList.add('visible');
+                    }, 10);
+                };
                 popupImage.src = imageUrl;
-                popupImage.alt = '';
             } else {
-                imageContainer.style.display = 'none';
-                popupImage.style.display = 'none';
-                popupImage.src = '';
-                popupImage.alt = '';
+                popup.classList.add('active');
             }
-            
-            popup.classList.add('active');
         }
         
         function hidePopup() {
             popup.classList.remove('active');
+            // Reset image container for next use
+            imageContainer.style.display = 'none';
+            imageContainer.classList.remove('visible');
+            popupImage.src = '';
         }
         
         function startQuiz() {
