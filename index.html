@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Math Quiz</title>
+    <style>
+        :root {
+            --primary-color: #6C63FF;
+            --primary-dark: #564FD9;
+            --secondary-color: #FF6584;
+            --text-color: #2D3748;
+            --light-text: #F8FAFC;
+            --bg-color: #F7FAFC;
+            --card-bg: white;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-color);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.4;
+            color: var(--text-color);
+        }
+
+        .quiz-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            padding: 16px;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 0 0 12px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        #question {
+            background-color: rgba(108, 99, 255, 0.08);
+            padding: 12px 10px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            border-left: 3px solid var(--primary-color);
+            text-align: center;
+            word-break: break-word;
+            display: none;
+            font-weight: 500;
+        }
+
+        .grid-wrapper {
+            width: 100%;
+            display: none;
+            margin: 16px 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 6px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .cell {
+            background: var(--primary-color);
+            color: var(--light-text);
+            border-radius: 8px;
+            padding: 8px 2px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            box-shadow: var(--shadow-sm);
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .cell:active {
+            transform: scale(0.96);
+            background: var(--primary-dark);
+        }
+
+        /* Instructions */
+        .instructions {
+            background-color: rgba(108, 99, 255, 0.05);
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            text-align: left;
+            border: 1px dashed rgba(108, 99, 255, 0.2);
+        }
+
+        .instructions h2 {
+            color: var(--primary-color);
+            margin: 0 0 10px;
+            font-size: 1.1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+            font-size: 0.85rem;
+        }
+
+        .instructions li {
+            margin-bottom: 6px;
+        }
+
+        /* Start Button */
+        .start-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 12px auto;
+            display: block;
+            width: fit-content;
+            box-shadow: var(--shadow-md);
+        }
+
+        .start-btn:active {
+            transform: scale(0.96);
+            background: var(--primary-dark);
+        }
+
+        /* Popup */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 16px;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .popup-content {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 100%;
+            box-shadow: var(--shadow-md);
+            transform: translateY(10px);
+            transition: var(--transition);
+            text-align: center;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .popup-overlay.active .popup-content {
+            transform: translateY(0);
+        }
+
+        .image-container {
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .popup-image {
+            width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .popup-message {
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .popup-close {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 10px 24px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            width: 100%;
+            max-width: 120px;
+            margin: 0 auto;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .popup-close:active {
+            transform: scale(0.96);
+            background: var(--primary-dark);
+        }
+
+        /* iPhone SE and small screens */
+        @media (max-width: 320px) {
+            .quiz-container {
+                padding: 14px;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            #question {
+                font-size: 0.9rem;
+                padding: 10px 8px;
+            }
+
+            .instructions {
+                padding: 12px;
+            }
+
+            .instructions h2 {
+                font-size: 1rem;
+            }
+
+            .instructions ol {
+                font-size: 0.8rem;
+            }
+
+            .grid {
+                gap: 5px;
+            }
+
+            .cell {
+                font-size: 0.75rem;
+                padding: 6px 1px;
+            }
+
+            .start-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .popup-content {
+                padding: 18px;
+            }
+
+            .popup-message {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Math Quiz</h1>
+        
+        <div class="instructions">
+            <h2>How to Play</h2>
+            <ol>
+                <li>A question will be shown at the top</li>
+                <li>Find its correct answer in the grid</li>
+                <li>Tap on the answer cell</li>
+                <li>Game will not proceed until you click the correct cell</li>
+            </ol>
+        </div>
+        
+        <button class="start-btn" id="start-btn">Start Game</button>
+        <div id="question"></div>
+        
+        <div class="grid-wrapper">
+            <div class="grid" id="grid"></div>
+        </div>
+    </div>
+    
+    <div class="popup-overlay" id="popup">
+        <div class="popup-content">
+            <div class="image-container" id="image-container">
+                <img class="popup-image" id="popup-image" src="" alt="">
+            </div>
+            <div class="popup-message" id="popup-message"></div>
+            <button class="popup-close" id="popup-close">OK</button>
+        </div>
+    </div>
+
+    <audio id="background-music" loop>
+        <source src="sangrakhna.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const numbers = [
+            '1000', '6',  '∞', '100', '2', '404', '500', '435', '245', '365', '7',
+            '1', '10', '1,000,000', '0.1', '20,000', '366', '3000', '129', '24.357',
+            '25.678', '-246', '-122', '99', '233'
+        ];
+
+        const questions = [
+            "10 X 100 = ?", "7 - 1 = ?", "one divide by zero is", "50 + 50 = ? ",
+            "1 + 1 = ?", "202 + 202 = ?",
+            "5² × 20 = ?", "420+15 = ?", "240 + 5 = ?", "350 + 15 = ?",
+            "9 - 2 = ?", "2 - 1 = ?", "5 + 5 = ?", "10⁶ = ?", "1 / 10 = ?",
+            "2 * 10 * 1000 = ?", "166 + 200 = ?", "3 X 1000 = ?"
+        ];
+
+        const messages = [
+    "1000\n\n- That's how much I love you, multiplied by infinity! ❤️✨", 
+
+    "6\n\n- Dipak Flat—home that felt perfect! ❤️🏡 because we all lived under one roof", 
+
+    "∞\n\n- That's how lucky I am to have you as my sister! 🥹💖", 
+
+    "100%\n\n- That's how much chocolate you can have! 🍫🤩", 
+
+    "2\n\n- That's the number of strong women in my life… You, Mum! ❤️👩‍👧", 
+
+    "404\n\n- Expression Not Found. 🤣 But we know that he loves you eternity! 💙 (PS: ask jiju for error 404 context)", 
+
+    "500\n\n- That's how many times you've told me that I don't click good pictures. Efforts don't count huh? 📸🙄", 
+
+    "435\n\n- That's how many times I've been your unpaid cook, waterboy, driver, coolie. 🍽️🚗📦😤", 
+
+    "245\n\n- medals for all the elder sister trauma you've survived! 🏅😂", 
+
+    "365\n\n- That's how many days a year Mum spoils us! 🍲💖", 
+
+    "7\n\n- That's the number of deep breaths you take every time I test your patience! 😮‍💨😆", 
+
+    "1\n\n- That's the number of brave souls who signed up to handle my sister! 😂🫡", 
+
+    "10/10\n\n- That's how amazing your advice is! 💡💯", 
+
+    "1,000,000\n\n- That's the number of things you've gifted me! 🎁😇", 
+
+    "0.1\n\n- That's how often you actually lose your patience! 😂🔥", 
+
+    "20,000\n\n- That's the number of my problems you've listened to… 🫂💬", 
+
+    "366\n\n- That's the number of days jiju will be the official 'photographer'! 📷😜", 
+
+    "3000\n\n- That's how everyone loves you. (But I love you 3000 * infinity 😆)! ❤️✨"
+];
+
+
+        const questionImages = [
+            "q1.jpeg", "q2.jpeg", "q3.jpeg", "q4.jpeg", "q5.jpeg",
+            "q6.jpeg", "q7.jpeg", "q8.jpeg", "q9.jpeg", "q10.jpeg",
+            "q11.jpeg", "q12.jpeg", "q13.jpeg", "q14.jpeg", "q15.jpeg",
+            "q16.jpeg", "q17.jpeg", "q18.jpeg"
+        ];
+
+        let shuffledIndices = [...Array(numbers.length).keys()].sort(() => Math.random() - 0.5);
+        let currentQuestion = 0;
+        
+        const popup = document.getElementById('popup');
+        const popupMessage = document.getElementById('popup-message');
+        const popupImage = document.getElementById('popup-image');
+        const imageContainer = document.getElementById('image-container');
+        const popupClose = document.getElementById('popup-close');
+        const startBtn = document.getElementById('start-btn');
+        const questionElement = document.getElementById('question');
+        const gridWrapper = document.querySelector('.grid-wrapper');
+        const backgroundMusic = document.getElementById('background-music');
+        
+        const START_TIME = 0;
+        
+        function showPopup(message, showImage = false, imageUrl = '') {
+            popupMessage.textContent = message;
+            
+            if (showImage && imageUrl) {
+                imageContainer.style.display = 'block';
+                popupImage.style.display = 'block';
+                popupImage.src = imageUrl;
+                popupImage.alt = '';
+            } else {
+                imageContainer.style.display = 'none';
+                popupImage.style.display = 'none';
+                popupImage.src = '';
+                popupImage.alt = '';
+            }
+            
+            popup.classList.add('active');
+        }
+        
+        function hidePopup() {
+            popup.classList.remove('active');
+        }
+        
+        function startQuiz() {
+            startBtn.style.display = 'none';
+            questionElement.style.display = 'block';
+            gridWrapper.style.display = 'block';
+            
+            backgroundMusic.currentTime = START_TIME;
+            backgroundMusic.play().catch(e => console.log("Autoplay prevented"));
+            
+            questionElement.innerText = `Q1: ${questions[0]}`;
+            renderGrid();
+        }
+        
+        popupClose.addEventListener('click', hidePopup);
+        startBtn.addEventListener('click', startQuiz);
+        
+        document.body.addEventListener('click', function() {
+            backgroundMusic.currentTime = START_TIME;
+            backgroundMusic.play().catch(e => {});
+        }, { once: true });
+
+        function renderGrid() {
+            const grid = document.getElementById("grid");
+            grid.innerHTML = "";
+            shuffledIndices.forEach((i) => {
+                const cell = document.createElement("div");
+                cell.className = "cell";
+                cell.textContent = numbers[i];
+                cell.onclick = () => checkAnswer(i);
+                grid.appendChild(cell);
+            });
+        }
+
+        function checkAnswer(index) {
+            if (index === currentQuestion) {
+                const imageUrl = questionImages[currentQuestion];
+                showPopup(messages[currentQuestion], true, imageUrl);
+                currentQuestion++;
+                if (currentQuestion < questions.length) {
+                    questionElement.innerText = `Q${currentQuestion + 1}: ${questions[currentQuestion]}`;
+                } else {
+                    showPopup("Quiz Complete!");
+                }
+            } else {
+                showPopup("Wrong Answer! Try again.");
+            }
+        }
+    </script>
+</body>
+</html>
