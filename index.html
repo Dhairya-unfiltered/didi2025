@@ -353,7 +353,7 @@
             "2 * 10 * 1000 = ?", "166 + 200 = ?", "3 X 1000 = ?"
         ];
 
-             const messages = [
+          const messages = [
     "1000\n\n 1000-That's how much I love you, multiplied by infinity! ❤️✨", 
 
     "6\n\n 6-Dipak Flat—home that felt perfect! ❤️🏡 because we all lived under one roof", 
@@ -362,9 +362,9 @@
 
     "100%\n\n- That's how much chocolate you can have! 🍫🤩", 
 
-    "2\n\n- 2-That's the number of strong women in my life… You, Mum! ❤️👩‍👧", 
+    "2\n\n 2-That's the number of strong women in my life… You, Mum! ❤️👩‍👧", 
 
-    "404\n\n- 404 Expression Not Found. 🤣 But we know that he loves you eternity! 💙 (PS: ask jiju for error 404 context)", 
+    "404\n\n 404 Expression Not Found. 🤣 But we know that he loves you eternity! 💙 (PS: ask jiju for error 404 context)", 
 
     "500\n\n- That's how many times you've told me that I don't click good pictures. Efforts don't count huh? 📸🙄", 
 
@@ -391,6 +391,7 @@
     "3000\n\n- That's how everyone loves you. (But I love you 3000 * infinity 😆)! ❤️✨"
 ];
 
+
         const questionImages = [
             "q1.jpeg", "q2.jpeg", "q3.jpeg", "q4.jpeg", "q5.jpeg",
             "q6.jpeg", "q7.jpeg", "q8.jpeg", "q9.jpeg", "q10.jpeg",
@@ -400,6 +401,7 @@
 
         let shuffledIndices = [...Array(numbers.length).keys()].sort(() => Math.random() - 0.5);
         let currentQuestion = 0;
+        let waitingForPopupClose = false;
         
         const popup = document.getElementById('popup');
         const popupMessage = document.getElementById('popup-message');
@@ -422,29 +424,35 @@
             popupMessage.textContent = message;
             
             if (showImage && imageUrl) {
-                // Hide the popup content briefly while we load the new image
-                popup.classList.remove('active');
-                
-                // Load the new image
                 popupImage.onload = function() {
                     imageContainer.style.display = 'block';
-                    popup.classList.add('active');
                     setTimeout(() => {
                         imageContainer.classList.add('visible');
                     }, 10);
                 };
                 popupImage.src = imageUrl;
-            } else {
-                popup.classList.add('active');
             }
+            
+            popup.classList.add('active');
         }
         
         function hidePopup() {
             popup.classList.remove('active');
-            // Reset image container for next use
-            imageContainer.style.display = 'none';
-            imageContainer.classList.remove('visible');
-            popupImage.src = '';
+            
+            // Only advance to next question if we're waiting for popup close
+            if (waitingForPopupClose) {
+                waitingForPopupClose = false;
+                
+                if (currentQuestion < questions.length - 1) {
+                    currentQuestion++;
+                    questionElement.innerText = `Q${currentQuestion + 1}: ${questions[currentQuestion]}`;
+                    renderGrid();
+                } else if (currentQuestion === questions.length - 1) {
+                    // Show completion message
+                    showPopup("Quiz Complete!");
+                    currentQuestion++; // Prevent further questions
+                }
+            }
         }
         
         function startQuiz() {
@@ -481,14 +489,9 @@
 
         function checkAnswer(index) {
             if (index === currentQuestion) {
+                waitingForPopupClose = true;
                 const imageUrl = questionImages[currentQuestion];
                 showPopup(messages[currentQuestion], true, imageUrl);
-                currentQuestion++;
-                if (currentQuestion < questions.length) {
-                    questionElement.innerText = `Q${currentQuestion + 1}: ${questions[currentQuestion]}`;
-                } else {
-                    showPopup("Quiz Complete!");
-                }
             } else {
                 showPopup("Wrong Answer! Try again.");
             }
